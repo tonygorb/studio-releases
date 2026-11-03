@@ -1,0 +1,88 @@
+{
+  "stable": null,
+  "beta": {
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/latest.json",
+        "digest": "sha256:70d85ff18fa5ab2aadeeaecef55fcbe33d2f190a42ad66220232e6c531a63ab1",
+        "name": "latest.json",
+        "size": 3646,
+        "updated_at": "2026-11-02T22:49:36Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/SHA256SUMS.txt",
+        "digest": "sha256:1334457a6fa21f552e6b5690233ad67a354cad54d19242684a01e5481d554432",
+        "name": "SHA256SUMS.txt",
+        "size": 1004,
+        "updated_at": "2026-11-02T22:50:54Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/studio-0.1.0-beta.2-third-party-sources.tar",
+        "digest": "sha256:7f66d245035bf26218dfa9adf91baa86ee9578c915fe6cb7499f69d0cb31397d",
+        "name": "studio-0.1.0-beta.2-third-party-sources.tar",
+        "size": 166072320,
+        "updated_at": "2026-11-02T22:50:26Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_aarch64.app.tar.gz",
+        "digest": "sha256:14c43b7ea4f7eec773eecc0a4d05a0056de7ccf38e25a23b9ab7c21be945a18a",
+        "name": "Studio_0.1.0-beta.2_aarch64.app.tar.gz",
+        "size": 69365828,
+        "updated_at": "2026-11-02T22:36:45Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_aarch64.app.tar.gz.sig",
+        "digest": "sha256:6aa9057300464b33f271a2ba8f4ae68184715858b58d2bb56ef06b072dc59ebe",
+        "name": "Studio_0.1.0-beta.2_aarch64.app.tar.gz.sig",
+        "size": 432,
+        "updated_at": "2026-11-02T22:36:46Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_aarch64.dmg",
+        "digest": "sha256:4fa586b33f4475083699ff638d65cce7248340a5f874684df202451e625214f6",
+        "name": "Studio_0.1.0-beta.2_aarch64.dmg",
+        "size": 67737175,
+        "updated_at": "2026-11-02T22:36:40Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_x64-setup.exe",
+        "digest": "sha256:667a53d35dddefeb01500641f03265403494f4a59c7a9c038f092ca41f0a8065",
+        "name": "Studio_0.1.0-beta.2_x64-setup.exe",
+        "size": 44544580,
+        "updated_at": "2026-11-02T22:49:32Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_x64-setup.exe.sig",
+        "digest": "sha256:1b06fa5e81b6d37de670ced5a8fabfd8cb7494c6e676cc10c7d630d829952989",
+        "name": "Studio_0.1.0-beta.2_x64-setup.exe.sig",
+        "size": 452,
+        "updated_at": "2026-11-02T22:49:33Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_x64.app.tar.gz",
+        "digest": "sha256:ca6bee4dca7f16f72d31d5be116abf589087652cb733fdb48403c30308d24208",
+        "name": "Studio_0.1.0-beta.2_x64.app.tar.gz",
+        "size": 72185440,
+        "updated_at": "2026-11-02T22:48:20Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_x64.app.tar.gz.sig",
+        "digest": "sha256:11480588fa1a1f011e970411fc7158fcb60afd42b674a6b87fb3925b4bfec355",
+        "name": "Studio_0.1.0-beta.2_x64.app.tar.gz.sig",
+        "size": 432,
+        "updated_at": "2026-11-02T22:48:21Z"
+      },
+      {
+        "browser_download_url": "https://github.com/tonygorb/studio-releases/releases/download/beta/Studio_0.1.0-beta.2_x64.dmg",
+        "digest": "sha256:9a73801c7bdf887b46b44ad8482853042acd165313d35136c4332d3ab617992b",
+        "name": "Studio_0.1.0-beta.2_x64.dmg",
+        "size": 70848980,
+        "updated_at": "2026-11-02T22:48:17Z"
+      }
+    ],
+    "body": "Studio 0.1.0-beta.2, a closed test build. Download it, check it and open it the first time: https://tonygorb.github.io/studio-releases/\n\n## SHA-256\n\n```\n14c43b7ea4f7eec773eecc0a4d05a0056de7ccf38e25a23b9ab7c21be945a18a  Studio_0.1.0-beta.2_aarch64.app.tar.gz\n6aa9057300464b33f271a2ba8f4ae68184715858b58d2bb56ef06b072dc59ebe  Studio_0.1.0-beta.2_aarch64.app.tar.gz.sig\n4fa586b33f4475083699ff638d65cce7248340a5f874684df202451e625214f6  Studio_0.1.0-beta.2_aarch64.dmg\n667a53d35dddefeb01500641f03265403494f4a59c7a9c038f092ca41f0a8065  Studio_0.1.0-beta.2_x64-setup.exe\n1b06fa5e81b6d37de670ced5a8fabfd8cb7494c6e676cc10c7d630d829952989  Studio_0.1.0-beta.2_x64-setup.exe.sig\nca6bee4dca7f16f72d31d5be116abf589087652cb733fdb48403c30308d24208  Studio_0.1.0-beta.2_x64.app.tar.gz\n11480588fa1a1f011e970411fc7158fcb60afd42b674a6b87fb3925b4bfec355  Studio_0.1.0-beta.2_x64.app.tar.gz.sig\n9a73801c7bdf887b46b44ad8482853042acd165313d35136c4332d3ab617992b  Studio_0.1.0-beta.2_x64.dmg\n70d85ff18fa5ab2aadeeaecef55fcbe33d2f190a42ad66220232e6c531a63ab1  latest.json\n7f66d245035bf26218dfa9adf91baa86ee9578c915fe6cb7499f69d0cb31397d  studio-0.1.0-beta.2-third-party-sources.tar\n```\n",
+    "name": "Studio beta (0.1.0-beta.2)",
+    "published_at": "2026-11-02T22:07:12Z",
+    "tag_name": "beta"
+  }
+}

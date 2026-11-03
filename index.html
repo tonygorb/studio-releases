@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Download Studio</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231a1916'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='none' stroke='%23fbfbf9' stroke-width='2.5'/%3E%3C/svg%3E"
+    />
+    <style>
+      /* The app's own tokens (packages/ui/src/tokens.css), so the page reads as the same product. */
+      :root {
+        color-scheme: light dark;
+        --page: light-dark(#ffffff, #1e1e1e);
+        --surface: light-dark(#ffffff, #2c2c2c);
+        --sunken: light-dark(#f5f5f5, #383838);
+        --sunken-hover: light-dark(#ebebeb, #424242);
+        --ink: light-dark(#1a1a1a, #ffffff);
+        --ink-2: light-dark(#666666, #c0c0c0);
+        --ink-3: light-dark(#767676, #9a9a9a);
+        --line: light-dark(#ebebeb, #363636);
+        --dot: light-dark(#d9d9d9, #3a3a3a);
+        --brand: light-dark(#0d99ff, #0c8ce9);
+        --brand-text: light-dark(#0a6cd6, #7cc4f8);
+        --selection: light-dark(#cfe9ff, #2b4a6b);
+        --positive: light-dark(#1a7542, #67d397);
+        --tip: #1e1e1e;
+        /* One mark everywhere, the app icon as in the Dock: the dark tile in both themes, a faint edge on dark. */
+        --mark-tile: #1a1916;
+        --mark-ink: #fbfbf9;
+        --mark-edge: light-dark(transparent, rgb(255 255 255 / 0.1));
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        --hit: 32px;
+      }
+      @media (pointer: coarse) {
+        :root {
+          --hit: 40px;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scrollbar-color: var(--dot) transparent;
+        /* The hero's dot canvas runs past the column; it never adds a sideways scroll. */
+        overflow-x: clip;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font: 14px/1.5 var(--sans);
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+      }
+      ::selection {
+        background: var(--selection);
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 2px;
+      }
+      svg {
+        flex: none;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .wrap {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+
+      /* Top bar */
+      .bar {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .pill {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-2);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 1px 8px;
+        white-space: nowrap;
+      }
+      .links {
+        display: flex;
+        gap: 2px;
+      }
+
+      /* Buttons: every one is round. */
+      .ghost,
+      .icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: var(--hit);
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--ink-2);
+        font: inherit;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+          background-color 160ms var(--ease),
+          color 160ms var(--ease);
+      }
+      .ghost {
+        padding: 0 12px 0 10px;
+      }
+      .icon {
+        width: var(--hit);
+        position: relative;
+      }
+      .ghost:hover,
+      .icon:hover {
+        background: var(--sunken);
+        color: var(--ink);
+      }
+      /* A tooltip for icon-only buttons; the accessible name is aria-label. */
+      .icon::after {
+        content: attr(aria-label);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        translate: -50% 0;
+        white-space: nowrap;
+        background: var(--tip);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 3px 8px;
+        border-radius: 999px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 140ms var(--ease);
+      }
+      .icon:hover::after,
+      .icon:focus-visible::after {
+        opacity: 1;
+        transition-delay: 350ms;
+      }
+      /* The last button in a row keeps its tooltip inside the page. */
+      .acts .icon:last-child::after {
+        left: auto;
+        right: 0;
+        translate: 0;
+      }
+      @media (pointer: coarse) {
+        .icon::after {
+          display: none;
+        }
+      }
+
+      .primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        height: 48px;
+        padding: 0 6px 0 20px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--page);
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+        box-shadow:
+          0 1px 1px rgb(0 0 0 / 0.08),
+          0 6px 16px -4px light-dark(rgb(0 0 0 / 0.28), rgb(0 0 0 / 0.6));
+        transition: background-color 160ms var(--ease);
+      }
+      /* Hover and press only change the fill, a step toward the page each time. */
+      .primary:hover {
+        background: color-mix(in srgb, var(--ink) 84%, var(--page));
+      }
+      .primary:active {
+        background: color-mix(in srgb, var(--ink) 74%, var(--page));
+      }
+      .primary .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 12px 0 10px;
+        border-radius: 999px;
+        background: light-dark(rgb(255 255 255 / 0.14), rgb(0 0 0 / 0.08));
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      /* Hero, on a faint canvas of dots that fades out. */
+      .hero {
+        position: relative;
+        isolation: isolate;
+        padding: 64px 0 44px;
+        text-align: center;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: -60px calc(50% - 50vw) 0;
+        z-index: -1;
+        background: radial-gradient(var(--dot) 1px, transparent 1.2px) 0 0 / 16px 16px;
+        mask-image: radial-gradient(ellipse 50% 60% at 50% 40%, #000 30%, transparent 75%);
+        pointer-events: none;
+      }
+      .hero .mark {
+        display: block;
+        margin: 0 auto;
+        width: 76px;
+        height: 76px;
+        /* The shadow follows the drawn tile, not the element's box, so no browser draws a seam at its corners. */
+        filter: drop-shadow(0 4px 10px light-dark(rgb(0 0 0 / 0.14), rgb(0 0 0 / 0.24)));
+        animation: arrive 600ms var(--ease) both;
+      }
+      @keyframes arrive {
+        from {
+          opacity: 0;
+        }
+      }
+      h1 {
+        font-size: 34px;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+        margin: 22px 0 8px;
+        text-wrap: balance;
+      }
+      .lede {
+        font-size: 16px;
+        color: var(--ink-2);
+        margin: 0 0 28px;
+        text-wrap: balance;
+      }
+      .under {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 4px 8px;
+        margin: 14px 0 0;
+        font-size: 12px;
+        color: var(--ink-3);
+        min-height: 18px;
+      }
+      .under .live {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--positive);
+        box-shadow: 0 0 0 3px light-dark(rgb(26 117 66 / 0.14), rgb(103 211 151 / 0.16));
+      }
+      .under .sep {
+        width: 2px;
+        height: 2px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      /* Segmented control */
+      .seg {
+        display: inline-flex;
+        padding: 2px;
+        border-radius: 999px;
+        background: var(--sunken);
+      }
+      .seg button {
+        height: 26px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--ink-2);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          background-color 160ms var(--ease),
+          color 160ms var(--ease);
+      }
+      .seg button:hover {
+        color: var(--ink);
+      }
+      .seg button[aria-pressed="true"],
+      .seg button[aria-selected="true"] {
+        background: var(--surface);
+        color: var(--ink);
+        box-shadow:
+          0 0 0 0.5px rgb(0 0 0 / 0.08),
+          0 1px 3px rgb(0 0 0 / 0.12);
+      }
+      .seg button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
+      /* Sections */
+      section {
+        padding: 28px 0;
+      }
+      section + section {
+        border-top: 1px solid var(--line);
+      }
+      .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 30px;
+        margin-bottom: 14px;
+      }
+      h2 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .note {
+        margin: 0 0 12px;
+        color: var(--ink-2);
+      }
+      .fine {
+        margin: 12px 0 0;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+
+      /* Download rows */
+      .rows {
+        list-style: none;
+        margin: 0;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+      }
+      .file {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 6px 8px 8px;
+        border-radius: 14px;
+        transition: background-color 160ms var(--ease);
+      }
+      .file:not([data-missing]):hover {
+        background: var(--sunken);
+      }
+      .file .os {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: var(--sunken);
+        color: var(--ink);
+        transition: background-color 160ms var(--ease);
+      }
+      .file:not([data-missing]):hover .os {
+        background: var(--page);
+      }
+      .file .what {
+        flex: 1;
+        min-width: 0;
+      }
+      .file .name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+      }
+      .file .yours {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--brand-text);
+        background: light-dark(#e5f4ff, rgb(12 140 233 / 0.16));
+        border-radius: 999px;
+        padding: 1px 7px;
+        white-space: nowrap;
+      }
+      .file .facts {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-2);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .file .acts {
+        display: flex;
+        gap: 4px;
+      }
+      .file .acts .icon:hover {
+        background: var(--sunken-hover);
+      }
+      /* The download is the row's main action: it fills while the row is under the pointer. */
+      .file .acts .get {
+        background: var(--sunken);
+        color: var(--ink);
+      }
+      .file:hover .acts .get,
+      .file .acts .get:focus-visible,
+      .file .acts .get:hover {
+        background: var(--ink);
+        color: var(--page);
+      }
+      .file[data-missing] .name,
+      .file[data-missing] .os {
+        opacity: 0.4;
+      }
+      /* Loading: the rows hold their place. */
+      .skeleton {
+        display: inline-block;
+        width: 120px;
+        height: 10px;
+        border-radius: 999px;
+        vertical-align: middle;
+        background: linear-gradient(90deg, var(--sunken) 0 40%, var(--sunken-hover) 50%, var(--sunken) 60% 100%) 0 0 / 300% 100%;
+        animation: shimmer 1.4s linear infinite;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -150% 0;
+        }
+      }
+
+      /* Steps, joined by a thin rail. */
+      ol.steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: s;
+      }
+      ol.steps li {
+        counter-increment: s;
+        position: relative;
+        display: flex;
+        gap: 14px;
+        padding: 0 0 16px;
+      }
+      ol.steps li:last-child {
+        padding-bottom: 0;
+      }
+      ol.steps li::before {
+        content: counter(s);
+        position: relative;
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        flex: none;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--page);
+        font-size: 11px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      ol.steps li:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 10.5px;
+        top: 22px;
+        bottom: 0;
+        width: 1px;
+        background: var(--line);
+      }
+      ol.steps li > span {
+        padding-top: 1px;
+      }
+      [role="tabpanel"] {
+        animation: swap 240ms var(--ease);
+      }
+      @keyframes swap {
+        from {
+          opacity: 0;
+        }
+      }
+      kbd {
+        font: inherit;
+        font-weight: 600;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 1px 5px;
+        border-radius: 6px;
+        background: var(--sunken);
+      }
+
+      footer {
+        padding: 24px 0 56px;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--ink-3);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      footer a {
+        color: var(--ink-2);
+        text-decoration: underline;
+        text-decoration-color: var(--line);
+        text-underline-offset: 3px;
+        transition: text-decoration-color 160ms var(--ease);
+      }
+      footer a:hover {
+        color: var(--ink);
+        text-decoration-color: currentColor;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 480px) {
+        /* On a phone the links keep their icons only; the words stay for screen readers. */
+        .links .ghost {
+          width: var(--hit);
+          padding: 0;
+        }
+        .links .ghost span {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip-path: inset(50%);
+        }
+        .hero {
+          padding-top: 44px;
+        }
+        .file .facts {
+          white-space: normal;
+        }
+        .file .facts .part {
+          white-space: nowrap;
+        }
+        /* The line under the main button: its last part takes a line of its own. */
+        .under span:last-child {
+          flex-basis: 100%;
+        }
+        .under .sep:nth-last-child(2) {
+          display: none;
+        }
+        h1 {
+          font-size: 30px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Icons: one sprite, one stroke weight. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-download" viewBox="0 0 16 16">
+        <path
+          d="M8 2.75v7.5M4.75 7 8 10.25 11.25 7M3.25 13.25h9.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 16 16">
+        <path
+          d="M8 1.75 2.75 3.75v4c0 3 2.25 5.25 5.25 6.5 3-1.25 5.25-3.5 5.25-6.5v-4Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linejoin="round"
+        />
+        <path
+          d="m5.75 8 1.6 1.6 2.9-3.2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-laptop" viewBox="0 0 16 16">
+        <rect x="3" y="3.5" width="10" height="7" rx="1.25" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <path d="M1.5 12.75h13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-monitor" viewBox="0 0 16 16">
+        <rect x="2" y="2.5" width="12" height="8.5" rx="1.25" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <path d="M6 13.5h4M8 11v2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-message" viewBox="0 0 16 16">
+        <path
+          d="M2.5 4.25A1.75 1.75 0 0 1 4.25 2.5h7.5a1.75 1.75 0 0 1 1.75 1.75v5a1.75 1.75 0 0 1-1.75 1.75H6.5l-3 2.5V11h-.25a.75.75 0 0 1-.75-.75Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-list" viewBox="0 0 16 16">
+        <path
+          d="M5.75 4h7.5M5.75 8h7.5M5.75 12h7.5M2.75 4h.01M2.75 8h.01M2.75 12h.01"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-mark" viewBox="0 0 32 32">
+        <rect width="32" height="32" rx="8" style="fill: var(--mark-tile)" />
+        <rect x="9" y="9" width="14" height="14" rx="3" fill="none" stroke-width="2.5" style="stroke: var(--mark-ink)" />
+        <rect
+          x="0.25"
+          y="0.25"
+          width="31.5"
+          height="31.5"
+          rx="7.75"
+          fill="none"
+          stroke-width="0.5"
+          style="stroke: var(--mark-edge, transparent)"
+        />
+      </symbol>
+    </svg>
+
+    <div class="wrap">
+      <header class="bar">
+        <span class="brand">
+          <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark" /></svg>
+          Studio
+          <span class="pill">Beta</span>
+        </span>
+        <nav class="links" aria-label="Links">
+          <a class="ghost" id="all" href="https://github.com/tonygorb/studio-releases/releases">
+            <svg width="16" height="16" aria-hidden="true"><use href="#i-list" /></svg><span>Releases</span>
+          </a>
+          <a class="ghost" id="issues" href="https://github.com/tonygorb/studio-releases/issues/new">
+            <svg width="16" height="16" aria-hidden="true"><use href="#i-message" /></svg><span>Feedback</span>
+          </a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="hero">
+          <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark" /></svg>
+          <h1>Studio</h1>
+          <p class="lede">Design with agents beside you.</p>
+          <a class="primary" id="primary" hidden>
+            <span id="primary-label">Download</span>
+            <span class="chip"
+              ><svg width="14" height="14" aria-hidden="true"><use href="#i-download" /></svg><span class="num" id="primary-size"></span
+            ></span>
+          </a>
+          <p class="under" id="meta" aria-live="polite"><span class="skeleton" style="width: 180px"></span></p>
+        </div>
+
+        <section aria-labelledby="h-all">
+          <div class="head">
+            <h2 id="h-all">All downloads</h2>
+            <div class="seg" role="group" aria-label="Channel" id="channels" hidden>
+              <button type="button" data-channel="stable" aria-pressed="false">Stable</button>
+              <button type="button" data-channel="beta" aria-pressed="false">Beta</button>
+            </div>
+          </div>
+          <ul class="rows">
+            <li class="file" data-pattern="_aarch64\.dmg$" data-os="mac">
+              <span class="os"
+                ><svg width="16" height="16" aria-hidden="true"><use href="#i-laptop" /></svg
+              ></span>
+              <span class="what"
+                ><span class="name">Mac, Apple silicon</span
+                ><span class="facts" data-base="M1 or later"><span class="skeleton"></span></span
+              ></span>
+              <span class="acts"></span>
+            </li>
+            <li class="file" data-pattern="_x64\.dmg$" data-os="mac-intel">
+              <span class="os"
+                ><svg width="16" height="16" aria-hidden="true"><use href="#i-laptop" /></svg
+              ></span>
+              <span class="what"
+                ><span class="name">Mac, Intel</span><span class="facts" data-base="macOS 13 or later"><span class="skeleton"></span></span
+              ></span>
+              <span class="acts"></span>
+            </li>
+            <li class="file" data-pattern="-setup\.exe$" data-os="windows">
+              <span class="os"
+                ><svg width="16" height="16" aria-hidden="true"><use href="#i-monitor" /></svg
+              ></span>
+              <span class="what"
+                ><span class="name">Windows</span
+                ><span class="facts" data-base="Windows 10 or 11|64-bit"><span class="skeleton"></span></span
+              ></span>
+              <span class="acts"></span>
+            </li>
+          </ul>
+          <p class="fine">Which Mac? Apple menu &gt; About This Mac.</p>
+        </section>
+
+        <section aria-labelledby="h-open">
+          <div class="head">
+            <h2 id="h-open">Open it the first time</h2>
+            <div class="seg" role="tablist" aria-label="Computer">
+              <button type="button" role="tab" id="t-mac" aria-controls="p-mac" aria-selected="true">Mac</button>
+              <button type="button" role="tab" id="t-windows" aria-controls="p-windows" aria-selected="false" tabindex="-1">Windows</button>
+            </div>
+          </div>
+          <p class="note">Studio is not code-signed yet, so your computer asks you once.</p>
+          <ol class="steps" role="tabpanel" id="p-mac" aria-labelledby="t-mac">
+            <li>
+              <span>Open the <code>.dmg</code> and drag Studio into Applications. Open it.</span>
+            </li>
+            <li>
+              <span>When macOS says it could not verify Studio, click <kbd>Done</kbd>.</span>
+            </li>
+            <li>
+              <span
+                >Open <kbd>System Settings &gt; Privacy &amp; Security</kbd>, scroll to Security and click <kbd>Open Anyway</kbd> next to
+                Studio.</span
+              >
+            </li>
+          </ol>
+          <ol class="steps" role="tabpanel" id="p-windows" aria-labelledby="t-windows" hidden>
+            <li>
+              <span>Run the <code>-setup.exe</code>. No administrator is needed.</span>
+            </li>
+            <li>
+              <span>If Windows says “Windows protected your PC”, click <kbd>More info</kbd>.</span>
+            </li>
+            <li>
+              <span>Click <kbd>Run anyway</kbd>.</span>
+            </li>
+          </ol>
+        </section>
+      </main>
+
+      <footer>
+        <span>This page reads only the release list from GitHub. No cookies, no tracking.</span>
+        <a id="issues-2" href="https://github.com/tonygorb/studio-releases/issues/new">Report a problem</a>
+      </footer>
+    </div>
+
+    <script>
+      // On GitHub Pages (<owner>.github.io/<repo>/) the address names the releases repository.
+      const first = location.pathname.split("/").filter(Boolean)[0];
+      const repo =
+        location.hostname.endsWith(".github.io") && first ? `${location.hostname.split(".")[0]}/${first}` : "tonygorb/studio-releases";
+      const releases = {};
+      document.getElementById("all").href = `https://github.com/${repo}/releases`;
+      for (const id of ["issues", "issues-2"]) document.getElementById(id).href = `https://github.com/${repo}/issues/new`;
+
+      const ua = navigator.userAgent;
+      // Touch Macs report as iPad; a phone gets no main button, only the list.
+      const phone = /iPhone|Android|iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+      const mine = phone ? null : /Windows/.test(ua) ? "windows" : /Macintosh/.test(ua) ? "mac" : null;
+      const icon = (name) => `<svg width="16" height="16" aria-hidden="true"><use href="#i-${name}" /></svg>`;
+      const el = (tag, props) => Object.assign(document.createElement(tag), props);
+
+      // Tabs for the first-open steps, starting on this computer's.
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      function pick(tab) {
+        for (const t of tabs) {
+          const on = t === tab;
+          t.setAttribute("aria-selected", String(on));
+          t.tabIndex = on ? 0 : -1;
+          document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+        }
+      }
+      tabs.forEach((t, i) => {
+        t.onclick = () => pick(t);
+        t.onkeydown = (e) => {
+          if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+          const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+          pick(next);
+          next.focus();
+        };
+      });
+      if (mine === "windows") pick(tabs[1]);
+
+      const get = (path) =>
+        fetch(`https://api.github.com/repos/${repo}/releases/${path}`).then((r) => {
+          if (r.status === 404) return null;
+          if (!r.ok) throw new Error(`GitHub answered ${r.status}`);
+          return r.json();
+        });
+
+      // The line under the main button: a dot when a build is out, then its parts.
+      const meta = document.getElementById("meta");
+      function line(parts, live) {
+        meta.replaceChildren();
+        if (live) meta.append(el("span", { className: "live" }));
+        parts.forEach((p, i) => {
+          if (i) meta.append(el("span", { className: "sep" }));
+          meta.append(el("span", { textContent: p, className: i === 0 ? "num" : "" }));
+        });
+      }
+      // A row's details: each part stays whole, and a narrow screen wraps between parts.
+      function setFacts(facts, parts) {
+        facts.replaceChildren();
+        parts.forEach((p, i) => facts.append(...(i ? [" · "] : []), el("span", { textContent: p, className: "part" })));
+      }
+      function plainFacts() {
+        for (const f of document.querySelectorAll(".facts")) setFacts(f, f.dataset.base.split("|"));
+      }
+
+      function show(channel) {
+        const release = releases[channel];
+        for (const b of document.querySelectorAll("[data-channel]")) b.setAttribute("aria-pressed", String(b.dataset.channel === channel));
+        // SHA-256 per file: GitHub's own digest, else the list the release workflow writes into the notes.
+        const sums = {};
+        for (const m of (release.body || "").matchAll(/^([0-9a-f]{64}) +\*?(\S+)$/gm)) sums[m[2]] = m[1];
+        for (const a of release.assets) if (a.digest?.startsWith("sha256:")) sums[a.name] = a.digest.slice(7);
+        const scanned = release.body || "";
+        const newest =
+          release.assets
+            .map((a) => a.updated_at)
+            .sort()
+            .at(-1) || release.published_at;
+        const version = (`${release.name} ${release.tag_name}`.match(/\d+\.\d+\.\d+(-[\w.]+)?/) || [release.tag_name])[0];
+        const when = new Date(newest).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+        const found = {};
+        for (const file of document.querySelectorAll(".file")) {
+          const asset = release.assets.find((a) => new RegExp(file.dataset.pattern).test(a.name));
+          const acts = file.querySelector(".acts");
+          const facts = file.querySelector(".facts");
+          const name = file.querySelector(".name");
+          acts.replaceChildren();
+          name.querySelector(".yours")?.remove();
+          if (!asset) {
+            file.dataset.missing = "";
+            facts.textContent = "Not in this release";
+            continue;
+          }
+          delete file.dataset.missing;
+          const mb = `${(asset.size / 1e6).toFixed(0)} MB`;
+          setFacts(facts, [...facts.dataset.base.split("|"), mb]);
+          facts.title = asset.name;
+          found[file.dataset.os] = { asset, mb };
+          if (file.dataset.os === mine)
+            name.append(el("span", { className: "yours", textContent: mine === "mac" ? "This Mac" : "This PC" }));
+          const sha = sums[asset.name];
+          if (sha) {
+            if (scanned.includes(`virustotal.com/gui/file/${sha}`)) {
+              const vt = el("a", { className: "icon", href: `https://www.virustotal.com/gui/file/${sha}`, innerHTML: icon("shield") });
+              vt.setAttribute("aria-label", "Virus scan report");
+              acts.append(vt);
+            }
+          }
+          const dl = el("a", { className: "icon get", href: asset.browser_download_url, innerHTML: icon("download") });
+          dl.setAttribute("aria-label", `Download, ${mb}`);
+          acts.append(dl);
+        }
+
+        // The main button: this computer's file. A Mac gets Apple silicon; an Intel Mac picks its row.
+        const primary = document.getElementById("primary");
+        const ours = mine && found[mine];
+        primary.hidden = !ours;
+        if (ours) {
+          primary.href = ours.asset.browser_download_url;
+          document.getElementById("primary-label").textContent = mine === "mac" ? "Download for Mac" : "Download for Windows";
+          document.getElementById("primary-size").textContent = ours.mb;
+          line([version, when, mine === "mac" ? "Apple silicon, Intel below" : "64-bit"], true);
+        } else {
+          line([version, when, phone ? "Open on a Mac or PC to install" : "For Mac and Windows"], true);
+        }
+      }
+
+      // When GitHub's list does not come (60 requests an hour per network for visitors without a sign-in), every
+      // download still works: the buttons open the releases page, where the same files are listed.
+      function fallback() {
+        const page = `https://github.com/${repo}/releases`;
+        for (const file of document.querySelectorAll(".file")) {
+          const dl = el("a", { className: "icon get", href: page, innerHTML: icon("download") });
+          dl.setAttribute("aria-label", "Download from GitHub");
+          file.querySelector(".acts").replaceChildren(dl);
+          const name = file.querySelector(".name");
+          name.querySelector(".yours")?.remove();
+          if (file.dataset.os === mine)
+            name.append(el("span", { className: "yours", textContent: mine === "mac" ? "This Mac" : "This PC" }));
+        }
+        plainFacts();
+        const primary = document.getElementById("primary");
+        if (mine) {
+          primary.href = page;
+          primary.hidden = false;
+          document.getElementById("primary-label").textContent = mine === "mac" ? "Download for Mac" : "Download for Windows";
+          document.getElementById("primary-size").textContent = "GitHub";
+        }
+        line(["The file list did not load", "The buttons open the releases page on GitHub"]);
+      }
+
+      // The file list comes from releases.json beside this page, written by the release workflow when the builds are
+      // up: same site, so no GitHub request limit. GitHub's own list is the backup. Either is used only when every file
+      // links into this repository's releases and every checksum is one.
+      // The address as the browser reads it, so no `..` or encoded step can lead out of this repository's releases.
+      const inReleases = (href) => {
+        try {
+          const u = new URL(href);
+          return u.origin === "https://github.com" && u.pathname.startsWith(`/${repo}/releases/download/`) && !/\.\.|%2e|\\/i.test(href);
+        } catch {
+          return false;
+        }
+      };
+      const own = (release) =>
+        !release ||
+        release.assets.every((a) => inReleases(a.browser_download_url) && (!a.digest || /^sha256:[0-9a-f]{64}$/.test(a.digest)));
+      const fromSite = () =>
+        fetch("releases.json", { cache: "no-cache" }).then((r) => {
+          if (!r.ok) throw new Error(`releases.json answered ${r.status}`);
+          return r.json().then((j) => [j.stable ?? null, j.beta ?? null]);
+        });
+      const fromGitHub = () => Promise.all([get("latest"), get("tags/beta")]);
+      const checked = (load) =>
+        load().then((list) => {
+          if (!list.every(own)) throw new Error("A file outside this repository's releases");
+          return list;
+        });
+      checked(fromSite)
+        .catch(() => checked(fromGitHub))
+        .then(([stable, beta]) => {
+          Object.assign(releases, { stable, beta });
+          // The channel switch shows only when there is a choice.
+          if (stable && beta) document.getElementById("channels").hidden = false;
+          for (const b of document.querySelectorAll("[data-channel]")) {
+            b.disabled = !releases[b.dataset.channel];
+            b.onclick = () => show(b.dataset.channel);
+          }
+          if (stable || beta) show(stable ? "stable" : "beta");
+          else {
+            line(["Nothing published yet"]);
+            plainFacts();
+          }
+        })
+        .catch(fallback);
+    </script>
+  </body>
+</html>
